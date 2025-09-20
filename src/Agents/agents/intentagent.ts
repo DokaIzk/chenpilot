@@ -25,7 +25,7 @@ export class IntentAgent {
     if (!workflow.workflow.length) {
       return { success: false, error: "Could not determine workflow" };
     }
-    return executionAgent.run(workflow, userId);
+    return executionAgent.run(workflow, userId, input);
   }
 
   private async planWorkflow(

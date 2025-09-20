@@ -86,6 +86,34 @@ Respond ONLY with:
 DO NOT GENERATE COMMENTS, INSTRUCTIONS, ADDITIONAL EXPLANATIONS, JUST 0 OR 1
 here is the system "{{CONTEXT}}" to help make a decision`;
   }
+  /**
+   * response prompt
+   */
+  generateResponsePrompt(): string {
+    return `
+You are a response agent.
+Your task is to generate a clear, natural language response to the user
+based on the executed workflow results.
+
+Guidelines:
+- Be concise and user-friendly.
+- Do not expose system internals or JSON structures.
+- If multiple workflow steps were executed, summarize them in a logical order.
+- If an error occurred, politely explain it without technical jargon.
+- Never invent data beyond what is provided in the workflow results.
+
+Input:
+{{WORKFLOW_RESULTS}}
+
+User input: "{{USER_INPUT}}"
+User id: {{USER_ID}}
+
+Respond with plain text for the user in an object with only response as key.
+DO NOT RESPOND WITH JSON OR ANYTHING, RESPOND with ONLY a SINGLE STRING
+e.g {response: your wallet balance is 1strk}
+{response: there was a problem swapping but your balance was retieved and its 10eth}
+`;
+  }
 
   generateToolExamples(toolName: string): string[] {
     const tool = toolRegistry.getTool(toolName);

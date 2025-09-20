@@ -37,7 +37,6 @@ export class AgentLLM {
     if (asJson) {
       try {
         const parsed = JSON.parse(content);
-
         return parsed;
       } catch (err) {
         console.error("JSON parse error:", err, "raw:", content);

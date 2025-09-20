@@ -10,7 +10,7 @@ export class MemoryStore {
   constructor(maxContextPerAgent = 10) {
     this.maxContextPerAgent = maxContextPerAgent;
   }
-
+  
   add(agentId: string, entry: string) {
     let memory = this.memories.find((m) => m.agentId === agentId);
     if (!memory) {

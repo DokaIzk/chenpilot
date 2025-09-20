@@ -2,13 +2,13 @@ import { WorkflowPlan } from "../types";
 import { toolRegistry } from "../registry/ToolRegistry";
 import { ToolResult } from "../registry/ToolMetadata";
 import { memoryStore } from "../memory/memory";
+import { responseAgent } from "./responseagent";
 export class ExecutionAgent {
-  async run(plan: WorkflowPlan, userId: string) {
+  async run(plan: WorkflowPlan, userId: string, input: string) {
     const results: ToolResult[] = [];
 
     for (const step of plan.workflow) {
       try {
-       
         const result = await toolRegistry.executeTool(
           step.action,
           step.payload,
@@ -16,7 +16,6 @@ export class ExecutionAgent {
         );
         results.push(result);
       } catch (error) {
-  
         const errorResult: ToolResult = {
           action: step.action,
           status: "error",
@@ -38,8 +37,13 @@ export class ExecutionAgent {
     }));
 
     memoryStore.add(userId, `LLM: ${JSON.stringify(summarizedResults)}`);
-
-    return { success: true, results };
+    const res: { response: string } = await responseAgent.format(
+      results,
+      userId,
+      input
+    );
+    console.log(res, "resss");
+    return { success: true, data: res?.response };
   }
 }
 
