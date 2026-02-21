@@ -35,7 +35,7 @@ const stellarNetwork: StellarNetwork =
 // Validate network type
 if (stellarNetwork !== "testnet" && stellarNetwork !== "public") {
   throw new Error(
-    `Invalid STELLAR_NETWORK: ${process.env.STELLAR_NETWORK}. Must be "testnet" or "public"`,
+    `Invalid STELLAR_NETWORK: ${process.env.STELLAR_NETWORK}. Must be "testnet" or "public"`
   );
 }
 
@@ -54,6 +54,12 @@ export default {
     networkPassphrase:
       process.env.STELLAR_NETWORK_PASSPHRASE || stellarConfig.networkPassphrase,
     friendbotUrl: stellarConfig.friendbotUrl,
+  },
+  redis: {
+    host: process.env.REDIS_HOST || "localhost",
+    port: parseInt(process.env.REDIS_PORT || "6379"),
+    password: process.env.REDIS_PASSWORD || undefined,
+    db: parseInt(process.env.REDIS_DB || "0"),
   },
   db: {
     postgres: {
