@@ -1,4 +1,8 @@
 import dotenv from "dotenv";
+import path from "path";
+
+// Load .env.local first, then fall back to .env
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 dotenv.config();
 
 type StellarNetwork = "testnet" | "public";
@@ -32,7 +36,7 @@ const stellarNetwork: StellarNetwork =
 // Validate network type
 if (stellarNetwork !== "testnet" && stellarNetwork !== "public") {
   throw new Error(
-    `Invalid STELLAR_NETWORK: ${process.env.STELLAR_NETWORK}. Must be "testnet" or "public"`,
+    `Invalid STELLAR_NETWORK: ${process.env.STELLAR_NETWORK}. Must be "testnet" or "public"`
   );
 }
 

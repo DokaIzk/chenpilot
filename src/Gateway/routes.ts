@@ -27,24 +27,6 @@ const generalLimiter = rateLimit({
   message: { success: false, message: "Too many requests. Please slow down." },
 });
 
-// AC: 20 req/min for authenticated/sensitive endpoints (Wallet ops)
-// const sensitiveLimiter = rateLimit({
-//   windowMs: 1 * 60 * 1000, // 1 minute
-//   limit: 20,
-//   standardHeaders: 'draft-8',
-//   legacyHeaders: false,
-//   message: { success: false, message: "Sensitive action limit reached. Please wait a minute." },
-// });
-
-// AC: Stricter limits for Signup/Auth-related actions
-// const authLimiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   limit: 10,
-//   standardHeaders: 'draft-8',
-//   legacyHeaders: false,
-//   message: { success: false, message: "Too many attempts. Please try again after 15 minutes." },
-// });
-
 // Apply general limiter to all routes by default
 router.use(generalLimiter);
 
@@ -135,6 +117,14 @@ router.get(
     try {
       const { userId } = req.params;
 
+      // Ensure userId is a string
+      if (!userId || Array.isArray(userId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid userId parameter",
+        });
+      }
+
       // Extract and validate query parameters
       const { type, startDate, endDate, limit, cursor } = req.query as Record<
         string,
@@ -188,7 +178,7 @@ router.get(
       // Fetch transaction history
       const result = await transactionHistoryService.getTransactionHistory(
         userId as string,
-        queryParams,
+        queryParams
       );
 
       return res.status(200).json({
@@ -226,7 +216,7 @@ router.get(
 
       res.status(500).json({ error: errorMessage });
     }
-  }),
+  })
 );
 
 export default router;
