@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { injectable } from "tsyringe";
 import config from "../config/config";
 import logger from "../config/logger";
@@ -18,15 +18,17 @@ export interface VerifiedToken extends JwtPayload {
 @injectable()
 export class TokenService {
   generateResetToken(payload: ResetTokenPayload): string {
-    return jwt.sign(payload, config.jwt.secret, {
-      expiresIn: config.jwt.resetExpiry,
-    });
+    const options: SignOptions = {
+      expiresIn: config.jwt.resetExpiry as SignOptions["expiresIn"],
+    };
+    return jwt.sign(payload, config.jwt.secret, options);
   }
 
   generateEmailVerificationToken(payload: ResetTokenPayload): string {
-    return jwt.sign(payload, config.jwt.secret, {
-      expiresIn: "24h",
-    });
+    const options: SignOptions = {
+      expiresIn: "24h" as SignOptions["expiresIn"],
+    };
+    return jwt.sign(payload, config.jwt.secret, options);
   }
 
   verifyToken(token: string): VerifiedToken | null {
