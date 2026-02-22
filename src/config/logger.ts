@@ -8,7 +8,7 @@ const SENSITIVE_FIELDS = ["pk", "privateKey", "password", "token", "secret"];
 /**
  * Recursively redacts sensitive data from objects
  */
-function redactSensitiveData(obj: any): any {
+function redactSensitiveData(obj: unknown): unknown {
   if (obj === null || obj === undefined) {
     return obj;
   }
@@ -18,13 +18,15 @@ function redactSensitiveData(obj: any): any {
   }
 
   if (typeof obj === "object") {
-    const redacted: any = {};
+    const redacted: Record<string, unknown> = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         if (SENSITIVE_FIELDS.includes(key)) {
           redacted[key] = "[REDACTED]";
         } else {
-          redacted[key] = redactSensitiveData(obj[key]);
+          redacted[key] = redactSensitiveData(
+            (obj as Record<string, unknown>)[key]
+          );
         }
       }
     }
@@ -43,38 +45,17 @@ const redactFormat = winston.format((info) => {
 
   // Redact from metadata
   const { level, message, timestamp, ...meta } = info;
-  const redactedMeta = redactSensitiveData(meta);
+  const redactedMeta = redactSensitiveData(meta) as Record<string, unknown>;
 
   return {
     level,
     message,
     timestamp,
-    ...redactedMeta,
+    ...(typeof redactedMeta === "object" && redactedMeta !== null
+      ? redactedMeta
+      : {}),
   };
 });
-
-// Log format configuration
-const logFormat = winston.format.combine(
-  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  winston.format.errors({ stack: true }),
-  redactFormat(),
-  winston.format.printf((info) => {
-    const { timestamp, level, message, stack, ...meta } = info;
-    let log = `${timestamp} [${level.toUpperCase()}]: ${message}`;
-
-    // Add stack trace for errors
-    if (stack) {
-      log += `\n${stack}`;
-    }
-
-    // Add metadata if present
-    if (Object.keys(meta).length > 0) {
-      log += `\n${JSON.stringify(meta, null, 2)}`;
-    }
-
-    return log;
-  })
-);
 
 // JSON format for file logs
 const jsonFormat = winston.format.combine(
@@ -91,10 +72,13 @@ const logsDir = path.join(process.cwd(), "logs");
 const dailyRotateFileTransport = new DailyRotateFile({
   filename: path.join(logsDir, "application-%DATE%.log"),
   datePattern: "YYYY-MM-DD",
-  zippedArchive: true,
-  maxSize: "20m",
+  zippedArchive: true, // Compress old logs
+  maxSize: "20m", // Rotate when file reaches 20MB
   maxFiles: "14d", // Keep logs for 14 days
   format: jsonFormat,
+  auditFile: path.join(logsDir, ".application-audit.json"), // Track rotated files
+  createSymlink: true, // Create symlink to current log file
+  symlinkName: "application-current.log",
 });
 
 // Daily rotate file transport for error logs only
@@ -102,10 +86,13 @@ const errorRotateFileTransport = new DailyRotateFile({
   level: "error",
   filename: path.join(logsDir, "error-%DATE%.log"),
   datePattern: "YYYY-MM-DD",
-  zippedArchive: true,
-  maxSize: "20m",
+  zippedArchive: true, // Compress old logs
+  maxSize: "20m", // Rotate when file reaches 20MB
   maxFiles: "30d", // Keep error logs for 30 days
   format: jsonFormat,
+  auditFile: path.join(logsDir, ".error-audit.json"), // Track rotated files
+  createSymlink: true, // Create symlink to current log file
+  symlinkName: "error-current.log",
 });
 
 // Console transport for development
@@ -144,39 +131,85 @@ const logger = winston.createLogger({
     new DailyRotateFile({
       filename: path.join(logsDir, "exceptions-%DATE%.log"),
       datePattern: "YYYY-MM-DD",
-      zippedArchive: true,
-      maxSize: "20m",
-      maxFiles: "30d",
+      zippedArchive: true, // Compress old logs
+      maxSize: "20m", // Rotate when file reaches 20MB
+      maxFiles: "30d", // Keep exception logs for 30 days
       format: jsonFormat,
+      auditFile: path.join(logsDir, ".exceptions-audit.json"), // Track rotated files
+      createSymlink: true, // Create symlink to current log file
+      symlinkName: "exceptions-current.log",
     }),
   ],
   rejectionHandlers: [
     new DailyRotateFile({
       filename: path.join(logsDir, "rejections-%DATE%.log"),
       datePattern: "YYYY-MM-DD",
-      zippedArchive: true,
-      maxSize: "20m",
-      maxFiles: "30d",
+      zippedArchive: true, // Compress old logs
+      maxSize: "20m", // Rotate when file reaches 20MB
+      maxFiles: "30d", // Keep rejection logs for 30 days
       format: jsonFormat,
+      auditFile: path.join(logsDir, ".rejections-audit.json"), // Track rotated files
+      createSymlink: true, // Create symlink to current log file
+      symlinkName: "rejections-current.log",
     }),
   ],
   exitOnError: false,
 });
 
+// Log rotation events
+dailyRotateFileTransport.on(
+  "rotate",
+  (oldFilename: string, newFilename: string) => {
+    logger.info("Log file rotated", { oldFilename, newFilename });
+  }
+);
+
+dailyRotateFileTransport.on("archive", (zipFilename: string) => {
+  logger.info("Log file archived", { zipFilename });
+});
+
+dailyRotateFileTransport.on("logRemoved", (removedFilename: string) => {
+  logger.info("Old log file removed", { removedFilename });
+});
+
+errorRotateFileTransport.on(
+  "rotate",
+  (oldFilename: string, newFilename: string) => {
+    logger.info("Error log file rotated", { oldFilename, newFilename });
+  }
+);
+
+errorRotateFileTransport.on("archive", (zipFilename: string) => {
+  logger.info("Error log file archived", { zipFilename });
+});
+
+errorRotateFileTransport.on("logRemoved", (removedFilename: string) => {
+  logger.info("Old error log file removed", { removedFilename });
+});
+
 // Helper functions for common log patterns
-export const logError = (message: string, error?: Error | any, meta?: any) => {
-  logger.error(message, { error: error?.message || error, stack: error?.stack, ...meta });
+export const logError = (
+  message: string,
+  error?: Error | unknown,
+  meta?: Record<string, unknown>
+) => {
+  const errorObj = error instanceof Error ? error : new Error(String(error));
+  logger.error(message, {
+    error: errorObj.message,
+    stack: errorObj.stack,
+    ...meta,
+  });
 };
 
-export const logInfo = (message: string, meta?: any) => {
+export const logInfo = (message: string, meta?: Record<string, unknown>) => {
   logger.info(message, meta);
 };
 
-export const logWarn = (message: string, meta?: any) => {
+export const logWarn = (message: string, meta?: Record<string, unknown>) => {
   logger.warn(message, meta);
 };
 
-export const logDebug = (message: string, meta?: any) => {
+export const logDebug = (message: string, meta?: Record<string, unknown>) => {
   logger.debug(message, meta);
 };
 

@@ -6,19 +6,20 @@ Chen Pilot is an intelligent AI agent that enables seamless interaction with blo
 
 ## Prerequisites
 
-- Node.js 18+  
-- PostgreSQL database  
-- Environment variables configured (see Configuration section)  
+- Node.js 18+
+- PostgreSQL database
+- Environment variables configured (see Configuration section)
 
 ---
 
 ## 🛠️ Installation
 
 ### Clone the repository
+
 ```bash
 git clone <repository-url>
 cd chenpilot-experimental
-````
+```
 
 ### Install dependencies
 
@@ -47,23 +48,61 @@ npm run dev
 
 ---
 
+## 📝 Logging System
+
+Chen Pilot includes an automated log rotation system with compression to efficiently manage log files.
+
+### Features
+
+- **Daily Rotation**: Logs automatically rotate at midnight
+- **Automatic Compression**: Old logs are compressed to `.gz` format (80-90% size reduction)
+- **Size-Based Rotation**: Logs also rotate when reaching 20MB
+- **Automatic Cleanup**: Old logs are deleted based on retention policies
+- **Sensitive Data Redaction**: Passwords, tokens, and private keys are automatically redacted
+
+### Log Files
+
+- `logs/application-YYYY-MM-DD.log` - All application logs (14 days retention)
+- `logs/error-YYYY-MM-DD.log` - Error logs only (30 days retention)
+- `logs/exceptions-YYYY-MM-DD.log` - Uncaught exceptions (30 days retention)
+- `logs/rejections-YYYY-MM-DD.log` - Unhandled promise rejections (30 days retention)
+
+### Configuration
+
+Set the log level in your `.env` file:
+
+```bash
+LOG_LEVEL=info  # Options: debug, info, warn, error
+```
+
+### Usage
+
+```typescript
+import { logInfo, logError, logWarn, logDebug } from "./config/logger";
+
+logInfo("User logged in", { userId: "123" });
+logError("Database error", error, { context: "user-service" });
+```
+
+For more details, see [src/config/LOGGING.md](src/config/LOGGING.md)
+
+---
+
 ## 🧹 Code Quality & Git Hooks
 
 This project uses **Husky**, **lint-staged**, and **commitlint** to enforce code quality and commit message standards.
 
 ### What Runs Automatically
 
-* **pre-commit**
+- **pre-commit**
+  - Runs ESLint with auto-fix
+  - Runs Prettier formatting
+  - Blocks commits if checks fail
 
-  * Runs ESLint with auto-fix
-  * Runs Prettier formatting
-  * Blocks commits if checks fail
-
-* **commit-msg**
-
-  * Validates commit messages using Commitlint
-  * Enforces Conventional Commits format
-  * Blocks commits with invalid commit messages
+- **commit-msg**
+  - Validates commit messages using Commitlint
+  - Enforces Conventional Commits format
+  - Blocks commits with invalid commit messages
 
 This setup helps maintain consistent code style and a clean, readable git history.
 
@@ -103,10 +142,7 @@ pnpm exec commitlint --edit $1
 
 ```json
 {
-  "**/*.{ts,tsx}": [
-    "eslint --fix",
-    "prettier --write"
-  ]
+  "**/*.{ts,tsx}": ["eslint --fix", "prettier --write"]
 }
 ```
 
@@ -141,22 +177,22 @@ git commit --no-verify
 
 The agent uses an intelligent workflow system that:
 
-* **Parses Intent:** Understands natural language commands
-* **Plans Workflow:** Creates step-by-step execution plans
-* **Executes Tools:** Runs appropriate tools in sequence
-* **Manages State:** Tracks operation status and results
-* **Provides Feedback:** Returns structured responses
+- **Parses Intent:** Understands natural language commands
+- **Plans Workflow:** Creates step-by-step execution plans
+- **Executes Tools:** Runs appropriate tools in sequence
+- **Manages State:** Tracks operation status and results
+- **Provides Feedback:** Returns structured responses
 
 ---
 
 ## Contributing
 
-* Fork the repository
-* Create a feature branch
-* Make your changes
-* Ensure pre-commit and commit message checks pass
-* Add tests if applicable
-* Submit a pull request
+- Fork the repository
+- Create a feature branch
+- Make your changes
+- Ensure pre-commit and commit message checks pass
+- Add tests if applicable
+- Submit a pull request
 
 ---
 
@@ -170,13 +206,14 @@ This project is licensed under the ISC License.
 
 For support and questions:
 
-* Create an issue in the repository
-* Check the API health endpoints
-* Review the logs for error details
+- Create an issue in the repository
+- Check the API health endpoints
+- Review the logs for error details
 
 ---
 
 Chen Pilot — Your intelligent gateway to cross-chain DeFi operations
 
 ```
+
 ```
