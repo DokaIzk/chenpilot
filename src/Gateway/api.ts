@@ -1,9 +1,10 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { rateLimit } from "express-rate-limit"
+import { rateLimit } from "express-rate-limit";
 import { container } from "tsyringe";
 import routes from "./routes";
+import authRoutes from "./auth.routes";
 import requestLogger from "../middleware/requestLogger";
 
 import { authenticate } from "../Auth/auth";
@@ -76,7 +77,10 @@ app.post("/signup", async (req, res, next) => {
   }
 });
 
-app.post("/query", async (req, res, next) => {
+// Auth routes (password reset, email verification)
+app.use("/auth", authRoutes);
+
+app.post("/query", sensitiveLimiter, async (req, res, next) => {
   try {
     const { userId, query } = req.body;
 
