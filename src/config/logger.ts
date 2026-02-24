@@ -43,13 +43,13 @@ const redactFormat = winston.format((info) => {
 
   // Redact from metadata
   const { level, message, timestamp, ...meta } = info;
-  const redactedMeta = redactSensitiveData(meta);
+  const redactedMeta = redactSensitiveData(meta as Record<string, unknown>);
 
   return {
     level,
     message,
     timestamp,
-    ...redactedMeta,
+    ...(typeof redactedMeta === "object" && redactedMeta !== null ? redactedMeta : {}),
   };
 });
 
@@ -165,7 +165,12 @@ const logger = winston.createLogger({
 
 // Helper functions for common log patterns
 export const logError = (message: string, error?: Error | unknown, meta?: Record<string, unknown>) => {
-  logger.error(message, { error: error?.message || error, stack: error?.stack, ...meta });
+  const errorData = {
+    error: error instanceof Error ? error.message : error,
+    stack: error instanceof Error ? error.stack : undefined,
+    ...meta,
+  };
+  logger.error(message, errorData);
 };
 
 export const logInfo = (message: string, meta?: Record<string, unknown>) => {

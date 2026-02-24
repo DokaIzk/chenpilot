@@ -4,6 +4,8 @@ import app from "./Gateway/api";
 import config from "./config/config";
 import AppDataSource from "./config/Datasource";
 import logger from "./config/logger";
+import { initializeSocketManager } from "./Gateway/socketManager";
+
 class Server {
   private server: http.Server;
   private port: number;
@@ -11,6 +13,8 @@ class Server {
   constructor() {
     this.port = config.port || 3000;
     this.server = http.createServer(app);
+    // Initialize Socket.io manager
+    initializeSocketManager(this.server);
   }
 
   public async start(): Promise<void> {
