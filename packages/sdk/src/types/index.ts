@@ -69,3 +69,37 @@ export interface RecoveryEngineOptions {
   retryHandler?: RetryHandler;
   refundHandler?: RefundHandler;
 }
+
+// ─── Rate limiter types ──────────────────────────────────────────────────────
+
+/** Configuration for the token bucket rate limiter. */
+export interface RateLimiterConfig {
+  /** Requests allowed per second (default: 1). */
+  requestsPerSecond?: number;
+  /** Maximum burst size, in requests (default: 1). */
+  burstSize?: number;
+  /** Enable per-endpoint rate limiting (default: false). Useful for tracking separate limits per API endpoint. */
+  perEndpoint?: boolean;
+}
+
+/** Rate limit check result. */
+export interface RateLimitCheckResult {
+  /** Whether the request is allowed under current rate limit. */
+  allowed: boolean;
+  /** Milliseconds to wait before retrying if not allowed (0 if allowed). */
+  retryAfterMs: number;
+  /** Current available tokens in the bucket. */
+  tokensAvailable: number;
+}
+
+/** Rate limiter status snapshot. */
+export interface RateLimiterStatus {
+  /** Total requests checked by this limiter. */
+  totalChecks: number;
+  /** Requests that were rate-limited. */
+  limitedRequests: number;
+  /** Current tokens available globally. */
+  tokensAvailable: number;
+  /** Per-endpoint token availability (if perEndpoint is enabled). */
+  perEndpointTokens?: Record<string, number>;
+}
