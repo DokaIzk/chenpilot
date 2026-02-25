@@ -4,6 +4,7 @@ dist
 .env.local
 src/Auth/accounts.json
 logs/
+coverage/
 
 .agent/
 .agents/
