@@ -119,3 +119,61 @@ export interface EventSubscription {
   /** Last ledger that was checked. */
   getLastLedger(): number | null;
 }
+
+// ─── Network Status types ────────────────────────────────────────────────────
+
+/** Configuration for network status checks. */
+export interface NetworkStatusConfig {
+  /** Network to check ("testnet" | "mainnet"). */
+  network: "testnet" | "mainnet";
+  /** Optional RPC URL override. */
+  rpcUrl?: string;
+  /** Optional Horizon URL override. */
+  horizonUrl?: string;
+}
+
+/** Network health information. */
+export interface NetworkHealth {
+  /** Whether the network is reachable and responding. */
+  isHealthy: boolean;
+  /** Response time in milliseconds. */
+  responseTimeMs: number;
+  /** Latest ledger sequence. */
+  latestLedger: number;
+  /** Error message if unhealthy. */
+  error?: string;
+}
+
+/** Ledger latency information. */
+export interface LedgerLatency {
+  /** Current ledger sequence. */
+  currentLedger: number;
+  /** Time since last ledger close (seconds). */
+  timeSinceLastLedgerSec: number;
+  /** Average ledger close time (seconds). */
+  averageLedgerTimeSec: number;
+  /** Whether latency is within normal range. */
+  isNormal: boolean;
+}
+
+/** Protocol version information. */
+export interface ProtocolVersion {
+  /** Current protocol version. */
+  version: number;
+  /** Core version string. */
+  coreVersion: string;
+  /** Network passphrase. */
+  networkPassphrase: string;
+}
+
+/** Complete network status. */
+export interface NetworkStatus {
+  /** Network health information. */
+  health: NetworkHealth;
+  /** Ledger latency information. */
+  latency: LedgerLatency;
+  /** Protocol version information. */
+  protocol: ProtocolVersion;
+  /** Timestamp of the check. */
+  checkedAt: number;
+}
