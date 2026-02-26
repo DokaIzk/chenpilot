@@ -183,6 +183,8 @@ The agent uses an intelligent workflow system that:
 - **Manages State:** Tracks operation status and results
 - **Provides Feedback:** Returns structured responses
 
+For visual diagrams of how the **agents**, **tool registry**, and **external services** interact, see `ARCHITECTURE_DIAGRAMS.md` (Mermaid).
+
 ---
 
 ## SDK Idempotency for BTC → Stellar Swaps
