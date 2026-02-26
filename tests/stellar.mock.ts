@@ -22,7 +22,7 @@ export const mockStellarSdk: Record<string, any> = {
         ],
         sequenceNumber: () => "12345",
       }),
-      submitTransaction: jest.fn().mockResolvedValue({
+      submitTransaction: (jest.fn() as any).mockResolvedValue({
         hash: "mock_hash_123",
         ledger: 45678,
       }),
@@ -60,19 +60,17 @@ export const mockStellarSdk: Record<string, any> = {
     PUBLIC: "Public Global Stellar Network ; September 2015",
   },
   BASE_FEE: "100",
-  Account: jest
-    .fn()
-    .mockImplementation((accountId: string, sequence: string) => ({
-      accountId,
-      sequence,
-    })),
-  Contract: jest.fn().mockImplementation((contractId: string) => ({
-    contractId,
-    call: jest.fn((method: string, ...args: any[]) => ({
+  Account: jest.fn().mockImplementation((...args: any[]) => ({
+    accountId: args[0],
+    sequence: args[1],
+  })),
+  Contract: jest.fn().mockImplementation((...args: any[]) => ({
+    contractId: args[0],
+    call: jest.fn((...callArgs: any[]) => ({
       type: "invoke",
-      contractId,
-      method,
-      args,
+      contractId: args[0],
+      method: callArgs[0],
+      args: callArgs.slice(1),
     })),
   })),
   SorobanRpc: {

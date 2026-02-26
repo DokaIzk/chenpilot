@@ -17,9 +17,9 @@ import { stellarLiquidityTool } from "../Agents/tools/stellarLiquidityTool";
 import { authenticateToken } from "../Auth/auth.middleware";
 import {
   requireAdmin,
-  requireModerator,
   requireOwnerOrElevated,
 } from "./middleware/rbac.middleware";
+import { requireAdminWithIpWhitelist } from "./middleware/ipWhitelist.middleware";
 
 const router = Router();
 
@@ -384,34 +384,40 @@ router.get(
 );
 
 // GET /admin/stats - Internal admin route for CPU and memory usage
-router.get("/admin/stats", authenticateToken, requireAdmin, (req: Request, res: Response) => {
-  const memUsage = process.memoryUsage();
-  const cpuUsage = process.cpuUsage();
+router.get(
+  "/admin/stats",
+  authenticateToken,
+  requireAdminWithIpWhitelist(),
+  requireAdmin,
+  (req: Request, res: Response) => {
+    const memUsage = process.memoryUsage();
+    const cpuUsage = process.cpuUsage();
 
-  res.json({
-    success: true,
-    timestamp: new Date().toISOString(),
-    memory: {
-      rss: `${(memUsage.rss / 1024 / 1024).toFixed(2)} MB`,
-      heapTotal: `${(memUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`,
-      heapUsed: `${(memUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
-      external: `${(memUsage.external / 1024 / 1024).toFixed(2)} MB`,
-    },
-    cpu: {
-      user: `${(cpuUsage.user / 1000).toFixed(2)} ms`,
-      system: `${(cpuUsage.system / 1000).toFixed(2)} ms`,
-    },
-    system: {
-      totalMemory: `${(os.totalmem() / 1024 / 1024 / 1024).toFixed(2)} GB`,
-      freeMemory: `${(os.freemem() / 1024 / 1024 / 1024).toFixed(2)} GB`,
-      uptime: `${(os.uptime() / 3600).toFixed(2)} hours`,
-      loadAverage: os.loadavg(),
-    },
-    process: {
-      uptime: `${(process.uptime() / 60).toFixed(2)} minutes`,
-      pid: process.pid,
-    },
-  });
-});
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      memory: {
+        rss: `${(memUsage.rss / 1024 / 1024).toFixed(2)} MB`,
+        heapTotal: `${(memUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`,
+        heapUsed: `${(memUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+        external: `${(memUsage.external / 1024 / 1024).toFixed(2)} MB`,
+      },
+      cpu: {
+        user: `${(cpuUsage.user / 1000).toFixed(2)} ms`,
+        system: `${(cpuUsage.system / 1000).toFixed(2)} ms`,
+      },
+      system: {
+        totalMemory: `${(os.totalmem() / 1024 / 1024 / 1024).toFixed(2)} GB`,
+        freeMemory: `${(os.freemem() / 1024 / 1024 / 1024).toFixed(2)} GB`,
+        uptime: `${(os.uptime() / 3600).toFixed(2)} hours`,
+        loadAverage: os.loadavg(),
+      },
+      process: {
+        uptime: `${(process.uptime() / 60).toFixed(2)} minutes`,
+        pid: process.pid,
+      },
+    });
+  }
+);
 
 export default router;
