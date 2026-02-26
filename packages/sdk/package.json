@@ -1,5 +1,5 @@
 {
-  "name": "@chen-pilot/sdk-core",
+  "name": "@chenpilot-experimental/sdk",
   "version": "0.1.0",
   "description": "Core SDK for Chen Pilot cross-chain operations",
   "main": "dist/index.js",
