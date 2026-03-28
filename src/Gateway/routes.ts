@@ -19,6 +19,7 @@ import authRoutes from "../Auth/auth.routes";
 import dataExportRoutes from "../services/dataExport.routes";
 import horizonProxyRoutes from "./horizonProxy.routes";
 import auditLogRoutes from "../AuditLog/auditLog.routes";
+import adminAgentRoutes from "../Agents/admin/adminAgent.routes";
 import { stellarLiquidityTool } from "../Agents/tools/stellarLiquidityTool";
 import { authenticateToken } from "../Auth/auth.middleware";
 import {
@@ -112,6 +113,9 @@ router.use("/export", dataExportRoutes);
 router.use("/horizon", horizonProxyRoutes);
 // Mount audit log routes
 router.use("/audit", auditLogRoutes);
+
+// Mount admin agent management routes (requires admin role)
+router.use("/admin/agents", adminAgentRoutes);
 
 // Public webhook endpoint for Stellar funding notifications
 router.post(
@@ -615,7 +619,16 @@ router.get(
  */
 router.get("/realtime/stats", (req: Request, res: Response) => {
   try {
+    // Dynamic import to avoid circular dependency issues
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getSocketManager } = require("./socketManager");
     const socketManager = getSocketManager();
+
+    interface SocketClient {
+      socketId: string;
+      userId?: string;
+      connectedAt: Date;
+    }
 
     const stats = {
       success: true,
@@ -665,7 +678,15 @@ router.get("/realtime/stats", (req: Request, res: Response) => {
 router.get("/realtime/user/:userId/clients", (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    // Dynamic import to avoid circular dependency issues
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getSocketManager } = require("./socketManager");
     const socketManager = getSocketManager();
+
+    interface SocketClient {
+      socketId: string;
+      connectedAt: Date;
+    }
 
     const clients = socketManager.getUserClients(userId);
 
