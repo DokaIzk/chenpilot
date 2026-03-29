@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "core_vault",
+    "rbac",
 ]
 resolver = "2"
 
